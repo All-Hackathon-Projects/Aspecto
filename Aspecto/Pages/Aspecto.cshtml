@@ -2,18 +2,26 @@
 @model AspectoModel
 @{
 }
-
+<br />
+<br />
+<br />
 <p id="displaytext"></p>
 
-<p><span id="seconds">00</span>:<span id="tens">00</span></p>
-<button id="button-start">Start</button>
-<button id="button-stop">Stop</button>
-<p id="negativestuff"></p>
-<p id="positivestuff"></p>
-
-<div id='video-container' class='sub-graph'>
+<p style="text-align:center"><span id="seconds">00</span>:<span id="tens">00</span></p>
+<p style="text-align:center">
+    <button id="button-start" class="btn btn-primary btn-lg">Start</button>
+</p>
+<div id='video-container' class='sub-graph' style="text-align:center">
     <video width="500" height="400" autoplay="true" id="webcamStream"></video>
 </div>
+<p style="text-align:center">
+    <button id="button-stop" class="btn btn-primary btn-lg">Stop</button>
+    </p>
+<p id="negativestuff"></p>
+<p id="positivestuff"></p>
+<p id="totemotions"></p>
+<div id="chartContainer" style="height: 370px; width: 100%;"></div>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="/js/webcam.js"></script>
@@ -23,6 +31,7 @@
 <script src="js/loop.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/2.6.0/annyang.min.js"></script>
 <script>
+ 
     //TEXT ANALYTICS VARIABLES
     var positive = 0;
     var negative = 0;
@@ -36,7 +45,7 @@
         }
         var commands = {
             //HELLO
-            '*hello*': function () {
+            'hello': function () {
                 document.getElementById("displaytext").innerHTML += "Hello To You Too." + hello + '<br>';
                 document.body.style.backgroundColor = "#D3DCE6";
                 document.body.style.color = "black";
@@ -50,10 +59,10 @@
                 negative += 1;
                 console.log(negative);
             },
-            '*great life*': function () {
+            '*awesome*': function () {
                 positive += 1;
             },
-            '*wonderful life*': function () {
+            '*wonderful*': function () {
                 positive += 1;
             }
         };
@@ -73,6 +82,39 @@
     }
 
     //Timer
+    function charting(tots) {
+        var total = tots[0][1] + tots[1][1] + tots[2][1] + tots[3][1] + tots[4][1];
+        var ang = (tots[0][1] / total) * 100; 
+        var con = (tots[1][1] / total) * 100; 
+        var hap = (tots[2][1] / total) * 100; 
+        var neu = (tots[3][1] / total) * 100; 
+        var sad = (tots[4][1] / total) * 100;
+        console.log(ang);
+       
+            var chart = new CanvasJS.Chart("chartContainer", {
+                animationEnabled: true,
+                title: {
+                    text: "Emotional Analysis"
+                },
+                data: [{
+                    type: "pie",
+                    startAngle: 240,
+                    yValueFormatString: "##0.00\"%\"",
+                    indexLabel: "{label} {y}",
+                    dataPoints: [
+                        { y: ang, label: "Anger" },
+                        { y: con, label: "Contempt" },
+                        { y: hap, label: "Happiness" },
+                        { y: neu, label: "Neutral" },
+                        { y: sad, label: "Sadness" }
+                    ]
+                }]
+            });
+            chart.render();
+
+        
+
+    }
     window.onload = function () {
 
         var seconds = 00;
@@ -85,6 +127,8 @@
         var Interval;
 
         buttonStart.onclick = function () {
+            seconds = 00;
+            tens = 00;
             annyang.start({ autoRestart: true, continuous: false });
             //requestData();
             clearInterval(Interval);
@@ -96,6 +140,14 @@
             clearInterval(Interval);
             document.getElementById("negativestuff").innerHTML = 'Negative Words : ' + negative;
             document.getElementById("positivestuff").innerHTML = 'Positive Words : ' + positive;
+            var tots = getTotalEmotions();
+            var anger = parseFloat(tots[0][1]).toFixed(2);
+            var contempt = parseFloat(tots[1][1]).toFixed(2);
+            var happiness = parseFloat(tots[2][1]).toFixed(2);
+            var neutral = parseFloat(tots[3][1]).toFixed(2);
+            var sadness = parseFloat(tots[4][1]).toFixed(2);
+            //document.getElementById("totemotions").innerHTML = 'Anger: ' + anger + '<br>Contempt: ' + contempt + '<br>Happiness: ' + happiness + '<br>Neutral: ' + neutral + '<br>Sadness: ' + sadness;
+            charting(tots);
         }
 
 
@@ -123,8 +175,14 @@
             if (seconds > 9) {
                 appendSeconds.innerHTML = seconds;
             }
-            if ((seconds % 9) == 1 && tens <= 1) {
+            if ((seconds % 7) == 1 && tens <= 1) {
                 requestData();
+            }
+            if ((seconds % 20 == 19) && (tens <1))
+            {
+               alert("Rest Your Eyes"+"\n"+"You have been staring at the screen more than a healthy amount. Please proceed to look away and rest your eyes. Click OK after 20 seconds");
+               alert("Energize" + "\n" +"Feeling Drowsy? Let's get that heartrate up. Do some stretches or light exercises. Click OK to continue the timer.");
+
             }
         }
     }

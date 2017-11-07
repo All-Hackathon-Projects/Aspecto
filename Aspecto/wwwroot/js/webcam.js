@@ -26,7 +26,8 @@ function requestData() {
         totalEmotions[3][1] += data.neutral;
         totalEmotions[4][1] += data.sadness;
 
-        console.log("Total Emotions: " + totalEmotions)
+        console.log("Total Emotions: " + totalEmotions);
+        
     })
 }
 
